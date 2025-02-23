@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traffic Monitor</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+</head>`
+<body>
+    <h2>Live Traffic Monitor</h2>
+    <canvas id="trafficChart"></canvas>
+
+    <script>
+        var ctx = document.getElementById('trafficChart').getContext('2d');
+        var trafficChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Traffic Count',
+                    data: [],
+                    borderColor: 'blue',
+                    borderWidth: 2,
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: { display: true },
+                    y: { display: true }
+                }
+            }
+        });
+
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
+        socket.on('update_traffic', function(data) {
+            var now = new Date().toLocaleTimeString();
+            trafficChart.data.labels.push(now);
+            trafficChart.data.datasets[0].data.push(data.count);
+            if (trafficChart.data.labels.length > 10) {
+                trafficChart.data.labels.shift();
+                trafficChart.data.datasets[0].data.shift();
+            }
+            trafficChart.update();
+        });
+    </script>
+</body>
+</html>
