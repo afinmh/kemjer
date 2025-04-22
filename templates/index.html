@@ -3,15 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Traffic Monitor</title>
+    <title>Network Security Monitor</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
-</head>`
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .stats-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .stat-box {
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            text-align: center;
+            flex: 1;
+            margin: 0 10px;
+        }
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            display: none;
+        }
+        .alert-danger {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .chart-container {
+            margin-top: 20px;
+            height: 400px;
+        }
+        #debug {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            font-family: monospace;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
 <body>
-    <h2>Live Traffic Monitor</h2>
-    <canvas id="trafficChart"></canvas>
+    <div class="container">
+        <h2>Network Security Monitor</h2>
+        
+        <div class="stats-container">
+            <div class="stat-box">
+                <h3>Total Packets</h3>
+                <p id="totalPackets">0</p>
+            </div>
+            <div class="stat-box">
+                <h3>Current Status</h3>
+                <p id="currentStatus">Normal</p>
+            </div>
+            <div class="stat-box">
+                <h3>Threat Level</h3>
+                <p id="threatLevel">Low</p>
+            </div>
+        </div>
+
+        <div id="alertBox" class="alert alert-danger" style="display: none;">
+            <strong>Warning!</strong> Potential network attack detected!
+        </div>
+
+        <div class="chart-container">
+            <canvas id="trafficChart"></canvas>
+        </div>
+
+        <div id="debug">
+            <h3>Debug Information</h3>
+            <pre id="debugOutput"></pre>
+        </div>
+    </div>
 
     <script>
+        // Debug function
+        function debug(message) {
+            const debugOutput = document.getElementById('debugOutput');
+            debugOutput.innerHTML += message + '\n';
+            debugOutput.scrollTop = debugOutput.scrollHeight;
+        }
+
+        debug('Initializing chart...');
+        
         var ctx = document.getElementById('trafficChart').getContext('2d');
         var trafficChart = new Chart(ctx, {
             type: 'line',
@@ -23,28 +113,96 @@
                     borderColor: 'blue',
                     borderWidth: 2,
                     fill: false
+                }, {
+                    label: 'Threat Level',
+                    data: [],
+                    borderColor: 'red',
+                    borderWidth: 2,
+                    fill: false,
+                    yAxisID: 'y1'
                 }]
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: false,
                 scales: {
-                    x: { display: true },
-                    y: { display: true }
+                    x: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: 'Time'
+                        }
+                    },
+                    y: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: 'Packet Count'
+                        }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        title: {
+                            display: true,
+                            text: 'Threat Level'
+                        },
+                        min: 0,
+                        max: 1
+                    }
                 }
             }
         });
 
+        debug('Connecting to Socket.IO...');
         var socket = io.connect('http://' + document.domain + ':' + location.port);
+        
+        socket.on('connect', function() {
+            debug('Connected to server');
+        });
+
+        socket.on('disconnect', function() {
+            debug('Disconnected from server');
+        });
+
         socket.on('update_traffic', function(data) {
+            debug('Received data: ' + JSON.stringify(data));
+            
+            // Update total packets
+            document.getElementById('totalPackets').textContent = data.count;
+            
+            // Update threat level and status
+            var threatLevel = data.prediction;
+            document.getElementById('threatLevel').textContent = 
+                threatLevel > 0.7 ? 'High' : 
+                threatLevel > 0.3 ? 'Medium' : 'Low';
+            
+            document.getElementById('currentStatus').textContent = 
+                threatLevel > 0.7 ? 'Attack Detected' : 'Normal';
+            
+            // Show/hide alert
+            var alertBox = document.getElementById('alertBox');
+            alertBox.style.display = threatLevel > 0.7 ? 'block' : 'none';
+            
+            // Update chart
             var now = new Date().toLocaleTimeString();
             trafficChart.data.labels.push(now);
             trafficChart.data.datasets[0].data.push(data.count);
-            if (trafficChart.data.labels.length > 10) {
+            trafficChart.data.datasets[1].data.push(threatLevel);
+            
+            // Keep only last 20 data points
+            if (trafficChart.data.labels.length > 20) {
                 trafficChart.data.labels.shift();
                 trafficChart.data.datasets[0].data.shift();
+                trafficChart.data.datasets[1].data.shift();
             }
+            
             trafficChart.update();
+            debug('Chart updated');
         });
+
+        debug('Initialization complete');
     </script>
 </body>
 </html>
