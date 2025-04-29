@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Attack Detection</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h2 class="text-center mb-4" style="color: var(--primary-color);">
+            <i class="fas fa-shield-alt feature-icon"></i>Network Attack Detection
+        </h2>
+        
+        <div class="form-container">
+            <form id="detectionForm">
+                <ul class="nav nav-tabs" id="formTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="basic-tab" data-bs-toggle="tab" data-bs-target="#basic" type="button" role="tab">
+                            <i class="fas fa-network-wired"></i> Basic Features
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="flags-tab" data-bs-toggle="tab" data-bs-target="#flags" type="button" role="tab">
+                            <i class="fas fa-flag"></i> TCP Flags
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="protocols-tab" data-bs-toggle="tab" data-bs-target="#protocols" type="button" role="tab">
+                            <i class="fas fa-globe"></i> Protocols
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="statistics-tab" data-bs-toggle="tab" data-bs-target="#statistics" type="button" role="tab">
+                            <i class="fas fa-chart-line"></i> Statistics
+                        </button>
+                    </li>
+                    <li class="nav-item ms-auto" role="presentation">
+                        <button class="nav-link status-tab" id="status-tab" type="button" disabled>
+                            <i class="fas fa-shield-alt"></i> Status: <span id="nav-status">Normal</span>
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="formTabContent">
+                    <!-- Basic Features Tab -->
+                    <div class="tab-pane fade show active" id="basic" role="tabpanel">
+                        <div class="form-grid">
+                            <div class="form-section">
+                                <h5><i class="fas fa-network-wired"></i> Network Features</h5>
+                                <div class="feature-group">
+                                    <label class="form-label">Header Length</label>
+                                    <input type="number" class="form-control" name="header_length" required>
+                                </div>
+                                <div class="feature-group">
+                                    <label class="form-label">Protocol Type (1-255)</label>
+                                    <input type="number" class="form-control" name="protocol_type" min="1" max="255" required>
+                                </div>
+                                <div class="feature-group">
+                                    <label class="form-label">Duration (seconds)</label>
+                                    <input type="number" class="form-control" name="duration" step="0.1" required>
+                                </div>
+                            </div>
+                            <div class="form-section">
+                                <h5><i class="fas fa-tachometer-alt"></i> Rate Features</h5>
+                                <div class="feature-group">
+                                    <label class="form-label">Rate (packets/second)</label>
+                                    <input type="number" class="form-control" name="rate" step="0.1" required>
+                                </div>
+                                <div class="feature-group">
+                                    <label class="form-label">Source Rate</label>
+                                    <input type="number" class="form-control" name="srate" step="0.1" required>
+                                </div>
+                                <div class="feature-group">
+                                    <label class="form-label">Destination Rate</label>
+                                    <input type="number" class="form-control" name="drate" step="0.1" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TCP Flags Tab -->
+                    <div class="tab-pane fade" id="flags" role="tabpanel">
+                        <div class="form-grid">
+                            <div class="form-section">
+                                <h5><i class="fas fa-flag"></i> TCP Flags</h5>
+                                <div class="feature-group">
+                                    <label class="form-label">FIN Flag</label>
+                                    <div class="yes-no-toggle">
+                                        <button type="button" class="btn" data-value="0">No</button>
+                                        <button type="button" class="btn" data-value="1">Yes</button>
+                                    </div>
+                                    <input type="hidden" name="fin_flag" value="0">
+                                </div>
+                                <div class="feature-group">
+                                    <label class="form-label">SYN Flag</label>
+                                    <div class="yes-no-toggle">
+                                        <button type="button" class="btn" data-value="0">No</button>
+                                        <button type="button" class="btn" data-value="1">Yes</button>
+                                    </div>
+                                    <input type="hidden" name="syn_flag" value="0">
+                                </div>
+                                <div class="feature-group">
+                                    <label class="form-label">RST Flag</label>
+                                    <div class="yes-no-toggle">
+                                        <button type="button" class="btn" data-value="0">No</button>
+                                        <button type="button" class="btn" data-value="1">Yes</button>
+                                    </div>
+                                    <input type="hidden" name="rst_flag" value="0">
+                                </div>
+                                <div class="feature-group">
+                                    <label class="form-label">PSH Flag</label>
+                                    <div class="yes-no-toggle">
+                                        <button type="button" class="btn" data-value="0">No</button>
+                                        <button type="button" class="btn" data-value="1">Yes</button>
+                                    </div>
+                                    <input type="hidden" name="psh_flag" value="0">
+                                </div>
+                            </div>
+                            <div class="form-section">
+                                <h5><i class="fas fa-flag"></i> Additional Flags</h5>
+                                <div class="feature-group">
+                                    <label class="form-label">ACK Flag</label>
+                                    <div class="yes-no-toggle">
+                                        <button type="button" class="btn" data-value="0">No</button>
+                                        <button type="button" class="btn" data-value="1">Yes</button>
+                                    </div>
+                                    <input type="hidden" name="ack_flag" value="0">
+                                </div>
+                                <div class="feature-group">
+                                    <label class="form-label">ECE Flag</label>
+                                    <div class="yes-no-toggle">
+                                        <button type="button" class="btn" data-value="0">No</button>
+                                        <button type="button" class="btn" data-value="1">Yes</button>
+                                    </div>
+                                    <input type="hidden" name="ece_flag" value="0">
+                                </div>
+                                <div class="feature-group">
+                                    <label class="form-label">CWR Flag</label>
+                                    <div class="yes-no-toggle">
+                                        <button type="button" class="btn" data-value="0">No</button>
+                                        <button type="button" class="btn" data-value="1">Yes</button>
+                                    </div>
+                                    <input type="hidden" name="cwr_flag" value="0">
+                                </div>
+                            </div>
+                            <div class="form-section">
+                                <h5><i class="fas fa-calculator"></i> Flag Counts</h5>
+                                <div class="feature-group">
+                                    <label class="form-label">ACK Count</label>
+                                    <input type="number" class="form-control" name="ack_count" required>
+                                </div>
+                                <div class="feature-group">
+                                    <label class="form-label">SYN Count</label>
+                                    <input type="number" class="form-control" name="syn_count" required>
+                                </div>
+                                <div class="feature-group">
+                                    <label class="form-label">FIN Count</label>
+                                    <input type="number" class="form-control" name="fin_count" required>
+                                </div>
+                                <div class="feature-group">
+                                    <label class="form-label">RST Count</label>
+                                    <input type="number" class="form-control" name="rst_count" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Protocols Tab -->
+                    <div class="tab-pane fade" id="protocols" role="tabpanel">
+                        <div class="form-grid">
+                            <div class="form-section">
+                                <h5><i class="fas fa-globe"></i> Application Protocols</h5>
+                                <div class="feature-group">
+                                    <label class="form-label">HTTP</label>
+                                    <div class="yes-no-toggle">
+                                        <button type="button" class="btn" data-value="0">No</button>
+                                        <button type="button" class="btn" data-value="1">Yes</button>
+                                    </div>
+                                    <input type="hidden" name="http" value="0">
+                                </div>
+                                <div class="feature-group">
+                                    <label class="form-label">HTTPS</label>
+                                    <div class="yes-no-toggle">
+                                        <button type="button" class="btn" data-value="0">No</button>
+                                        <button type="button" class="btn" data-value="1">Yes</button>
+                                    </div>
+                                    <input type="hidden" name="https" value="0">
+                                </div>
+                                <div class="feature-group">
+                                    <label class="form-label">DNS</label>
+                                    <div class="yes-no-toggle">
+                                        <button type="button" class="btn" data-value="0">No</button>
+                                        <button type="button" class="btn" data-value="1">Yes</button>
+                                    </div>
+                                    <input type="hidden" name="dns" value="0">
+                                </div>
+                                <div class="feature-group">
+                                    <label class="form-label">Telnet</label>
+                                    <div class="yes-no-toggle">
+                                        <button type="button" class="btn" data-value="0">No</button>
+                                        <button type="button" class="btn" data-value="1">Yes</button>
+                                    </div>
+                                    <input type="hidden" name="telnet" value="0">
+                                </div>
+                            </div>
+                            <div class="form-section">
+                                <h5><i class="fas fa-server"></i> Additional Protocols</h5>
+                                <div class="feature-group">
+                                    <label class="form-label">SMTP</label>
+                                    <div class="yes-no-toggle">
+                                        <button type="button" class="btn" data-value="0">No</button>
+                                        <button type="button" class="btn" data-value="1">Yes</button>
+                                    </div>
+                                    <input type="hidden" name="smtp" value="0">
+                                </div>
+                                <div class="feature-group">
+                                    <label class="form-label">SSH</label>
+                                    <div class="yes-no-toggle">
+                                        <button type="button" class="btn" data-value="0">No</button>
+                                        <button type="button" class="btn" data-value="1">Yes</button>
+                                    </div>
+                                    <input type="hidden" name="ssh" value="0">
+                                </div>
+                                <div class="feature-group">
+                                    <label class="form-label">IRC</label>
+                                    <div class="yes-no-toggle">
+                                        <button type="button" class="btn" data-value="0">No</button>
+                                        <button type="button" class="btn" data-value="1">Yes</button>
+                                    </div>
+                                    <input type="hidden" name="irc" value="0">
+                                </div>
+                            </div>
+                            <div class="form-section">
+                                <h5><i class="fas fa-network-wired"></i> Network Protocols</h5>
+                                <div class="feature-group">
+                                    <label class="form-label">TCP</label>
+                                    <div class="yes-no-toggle">
+                                        <button type="button" class="btn" data-value="0">No</button>
+                                        <button type="button" class="btn" data-value="1">Yes</button>
+                                    </div>
+                                    <input type="hidden" name="tcp" value="0">
+                                </div>
+                                <div class="feature-group">
+                                    <label class="form-label">UDP</label>
+                                    <div class="yes-no-toggle">
+                                        <button type="button" class="btn" data-value="0">No</button>
+                                        <button type="button" class="btn" data-value="1">Yes</button>
+                                    </div>
+                                    <input type="hidden" name="udp" value="0">
+                                </div>
+                                <div class="feature-group">
+                                    <label class="form-label">DHCP</label>
+                                    <div class="yes-no-toggle">
+                                        <button type="button" class="btn" data-value="0">No</button>
+                                        <button type="button" class="btn" data-value="1">Yes</button>
+                                    </div>
+                                    <input type="hidden" name="dhcp" value="0">
+                                </div>
+                                <div class="feature-group">
+                                    <label class="form-label">ARP</label>
+                                    <div class="yes-no-toggle">
+                                        <button type="button" class="btn" data-value="0">No</button>
+                                        <button type="button" class="btn" data-value="1">Yes</button>
+                                    </div>
+                                    <input type="hidden" name="arp" value="0">
+                                </div>
+                            </div>
+                            <div class="form-section">
+                                <h5><i class="fas fa-project-diagram"></i> Additional Network Protocols</h5>
+                                <div class="feature-group">
+                                    <label class="form-label">ICMP</label>
+                                    <div class="yes-no-toggle">
+                                        <button type="button" class="btn" data-value="0">No</button>
+                                        <button type="button" class="btn" data-value="1">Yes</button>
+                                    </div>
+                                    <input type="hidden" name="icmp" value="0">
+                                </div>
+                                <div class="feature-group">
+                                    <label class="form-label">IGMP</label>
+                                    <div class="yes-no-toggle">
+                                        <button type="button" class="btn" data-value="0">No</button>
+                                        <button type="button" class="btn" data-value="1">Yes</button>
+                                    </div>
+                                    <input type="hidden" name="igmp" value="0">
+                                </div>
+                                <div class="feature-group">
+                                    <label class="form-label">IPv</label>
+                                    <div class="yes-no-toggle">
+                                        <button type="button" class="btn" data-value="0">No</button>
+                                        <button type="button" class="btn" data-value="1">Yes</button>
+                                    </div>
+                                    <input type="hidden" name="ipv" value="0">
+                                </div>
+                                <div class="feature-group">
+                                    <label class="form-label">LLC</label>
+                                    <div class="yes-no-toggle">
+                                        <button type="button" class="btn" data-value="0">No</button>
+                                        <button type="button" class="btn" data-value="1">Yes</button>
+                                    </div>
+                                    <input type="hidden" name="llc" value="0">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Statistics Tab -->
+                    <div class="tab-pane fade" id="statistics" role="tabpanel">
+                        <div class="form-grid">
+                            <div class="form-section">
+                                <h5><i class="fas fa-calculator"></i> Basic Statistics</h5>
+                                <div class="feature-group">
+                                    <label class="form-label">Total Sum</label>
+                                    <input type="number" class="form-control" name="tot_sum" step="0.1" required>
+                                </div>
+                                <div class="feature-group">
+                                    <label class="form-label">Minimum Value</label>
+                                    <input type="number" class="form-control" name="min" step="0.1" required>
+                                </div>
+                                <div class="feature-group">
+                                    <label class="form-label">Maximum Value</label>
+                                    <input type="number" class="form-control" name="max" step="0.1" required>
+                                </div>
+                                <div class="feature-group">
+                                    <label class="form-label">Average Value</label>
+                                    <input type="number" class="form-control" name="avg" step="0.1" required>
+                                </div>
+                            </div>
+                            <div class="form-section">
+                                <h5><i class="fas fa-chart-bar"></i> Advanced Statistics</h5>
+                                <div class="feature-group">
+                                    <label class="form-label">Standard Deviation</label>
+                                    <input type="number" class="form-control" name="std" step="0.1" required>
+                                </div>
+                                <div class="feature-group">
+                                    <label class="form-label">Total Size</label>
+                                    <input type="number" class="form-control" name="tot_size" step="0.1" required>
+                                </div>
+                                <div class="feature-group">
+                                    <label class="form-label">Inter-Arrival Time</label>
+                                    <input type="number" class="form-control" name="iat" step="0.1" required>
+                                </div>
+                                <div class="feature-group">
+                                    <label class="form-label">Number</label>
+                                    <input type="number" class="form-control" name="number" required>
+                                </div>
+                            </div>
+                            <div class="form-section">
+                                <h5><i class="fas fa-chart-line"></i> Additional Statistics</h5>
+                                <div class="feature-group">
+                                    <label class="form-label">Magnitude</label>
+                                    <input type="number" class="form-control" name="magnitude" step="0.1" required>
+                                </div>
+                                <div class="feature-group">
+                                    <label class="form-label">Radius</label>
+                                    <input type="number" class="form-control" name="radius" step="0.1" required>
+                                </div>
+                                <div class="feature-group">
+                                    <label class="form-label">Covariance</label>
+                                    <input type="number" class="form-control" name="covariance" step="0.1" required>
+                                </div>
+                                <div class="feature-group">
+                                    <label class="form-label">Variance</label>
+                                    <input type="number" class="form-control" name="variance" step="0.1" required>
+                                </div>
+                                <div class="feature-group">
+                                    <label class="form-label">Weight</label>
+                                    <input type="number" class="form-control" name="weight" step="0.1" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i> Detect Attack
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="template-buttons">
+            <button type="button" class="btn btn-outline-primary" id="attackTemplate" title="Load Attack Template">
+                <i class="fas fa-bug"></i>
+                <span>Load Attack Template</span>
+            </button>
+            <button type="button" class="btn btn-outline-success" id="normalTemplate" title="Load Normal Template">
+                <i class="fas fa-shield-alt"></i>
+                <span>Load Normal Template</span>
+            </button>
+            <button type="button" class="btn btn-outline-warning" id="resetForm" title="Reset Form">
+                <i class="fas fa-undo"></i>
+                <span>Reset Form</span>
+            </button>
+        </div>
+
+        <!-- Result Modal -->
+        <div class="modal fade" id="resultModal" tabindex="-1" aria-labelledby="resultModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <div class="modal-title-container">
+                            <h5 class="modal-title" id="resultModalLabel">
+                                <i class="fas fa-shield-alt"></i> Network Security Status
+                            </h5>
+                            <p class="modal-subtitle">Threat Analysis Results</p>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="result-content">
+                            <div class="threat-level">
+                                <h6>Threat Level</h6>
+                                <div class="progress-container">
+                                    <div class="progress mb-3">
+                                        <div class="progress-bar" id="threatLevelBar" role="progressbar" style="width: 0%"></div>
+                                    </div>
+                                    <div class="threat-value" id="threatLevel">0.0</div>
+                                </div>
+                                <div class="threat-indicator">
+                                    <span class="low">Low</span>
+                                    <span class="medium">Medium</span>
+                                    <span class="high">High</span>
+                                </div>
+                            </div>
+                            <div class="status-section">
+                                <h6>Security Status</h6>
+                                <div class="status-container">
+                                    <div class="status-badge" id="status">
+                                        <i class="fas fa-check-circle"></i>
+                                        <span>Normal</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="warning-section">
+                                <h6>Analysis Details</h6>
+                                <div class="warning-content">
+                                    <i class="fas fa-info-circle"></i>
+                                    <p id="warning">No threats detected</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times"></i> Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html> 
